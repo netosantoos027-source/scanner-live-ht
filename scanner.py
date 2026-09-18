@@ -6,7 +6,7 @@ from datetime import datetime
 import pytz
 
 # ---------------------------------------------------------------------
-# PROJETO: ROBÔ OVER 0.5 HT (PRODUÇÃO E ESTRATÉGIA REAL ATIVADA)
+# PROJETO: ROBÔ OVER 0.5 HT (LAYOUT AJUSTADO + SISTEMA DE GREEN)
 # ---------------------------------------------------------------------
 TELEGRAM_TOKEN = "8977957095:AAFGcSuzjKxb2uX0lQzWwaozFdrreZ9myjc"
 TELEGRAM_CHAT_ID = "@robo_over_05_ht"
@@ -16,26 +16,36 @@ API_URL = "https://b3score.com"
 
 fuso_br = pytz.timezone('America/Sao_Paulo')
 
+# Dicionário na memória do robô para rastrear quais jogos receberam sinal de entrada
+# Isso evita que o robô envie o mesmo alerta repetidas vezes e monitora o Green
+jogos_sinalizados = {}
+
 def calcular_estrelas(stats):
     """ Calcula a pontuação de 1 a 5 estrelas baseada no volume de pressão ofensiva """
     estrelas = 0
-    
-    # 1. Critério de Finalizações Totais (Chutes fora + Chutes no gol >= 3)
     if stats['chutes_totais'] >= 3: estrelas += 1
-    # 2. Critério de Perigo Real (Pelo menos 1 chute defendido/no alvo)
     if stats['chutes_no_gol'] >= 1: estrelas += 1
-    # 3. Critério de Abafamento (Média de ataques perigosos > 1.3 por minuto)
     if stats['ataques_perigosos'] >= 13: estrelas += 1
-    # 4. Critério de Bola Parada/Pressão (Pelo menos 1 escanteio cobrado)
     if stats['escanteios'] >= 1: estrelas += 1
-    # 5. Fator Histórico/Tabela (Média das últimas partidas das equipes)
     if stats['fator_historico'] >= 75: estrelas += 1
-        
     return max(1, min(estrelas, 5))
+
+def enviar_telegram(texto):
+    """ Função centralizada e blindada para disparo de alertas """
+    site_base = "https://" + "api.telegram.org"
+    pasta_bot = "/bot" + TELEGRAM_TOKEN
+    acao_envio = "/sendMessage"
+    url_final = site_base + pasta_bot + acao_envio
+    
+    payload = {"chat_id": TELEGRAM_CHAT_ID, "text": texto, "parse_mode": "Markdown"}
+    try:
+        requests.post(url_final, json=payload, timeout=10)
+    except Exception as e:
+        print(f"Erro de rede no envio: {e}")
 
 print("📡 [SISTEMA EM PRODUÇÃO] Robô Over 0.5 HT monitorando o mercado ao vivo...")
 
-# O robô executa um loop de escaneamento de alta frequência (Aproximadamente 50 minutos por ciclo)
+# Loop de escaneamento contínuo de alta frequência (Aproximadamente 50 minutos por ciclo)
 for loop in range(100):
     data_agora = datetime.now(fuso_br).strftime('%d-%m-%Y %H:%M:%S')
     print(f"🔄 [Robô Over 0.5 HT] Varrendo partidas em andamento... {data_agora}")
@@ -50,18 +60,45 @@ for loop in range(100):
         
         for jogo in jogos:
             try:
+                jogo_id = str(jogo.get('id', ''))
                 minuto = int(jogo.get('minute', 0))
                 gols_casa = int(jogo.get('home_goals', 0))
                 gols_fora = int(jogo.get('away_goals', 0))
+                time_casa = jogo.get('home_name')
+                time_fora = jogo.get('away_name')
+                placar_total = gols_casa + gols_fora
                 
-                # 🚨 REGRA DO PROJETO 1: Filtrar estritamente a janela entre os minutos 7 e 17
+                # ---------------------------------------------------------------------
+                # 🟢 SISTEMA DE MONITORAMENTO DE GREEN
+                # ---------------------------------------------------------------------
+                # Se o jogo já recebeu um Alerta antes e ainda está dentro da janela do tempo
+                if jogo_id in jogos_sinalizados and 7 <= minuto <= 17:
+                    # Se o placar mudou (saiu gol) em relação ao momento da entrada (que era 0x0)
+                    if placar_total > 0 and jogos_sinalizados[jogo_id]['gols_iniciais'] == 0:
+                        msg_green = f"✅ *GREEENNN!!!* ✅\n"
+                        msg_green += f"⚽ Gol confirmado no primeiro tempo!\n"
+                        msg_green += f"📌 *Partida:* {time_casa} vs {time_fora}\n"
+                        msg_green += f"⏱️ *Momento do Gol:* Minuto {minuto}"
+                        
+                        enviar_telegram(msg_green)
+                        # Remove da lista para não enviar o Green duas vezes no mesmo jogo
+                        del jogos_sinalizados[jogo_id]
+                        continue
+
+                # ---------------------------------------------------------------------
+                # 🚨 SISTEMA DE CAPTURA DE ALERTA DE ENTRADA
+                # ---------------------------------------------------------------------
+                # Filtra estritamente a janela operacional entre os minutos 7 e 17
                 if 7 <= minuto <= 17:
                     
-                    # 🚨 REGRA DO PROJETO 2: Se sair gol (placar diferente de 0x0), o jogo é abortado instantaneamente
-                    if gols_casa > 0 or gols_fora > 0:
+                    # Se o jogo já foi alertado nesta rodada, ignoramos para não inundar o canal
+                    if jogo_id in jogos_sinalizados:
                         continue
                         
-                    # Coleta dos indicadores de pressão ao vivo
+                    # Se já saiu gol antes da análise, o jogo é descartado
+                    if placar_total > 0:
+                        continue
+                        
                     stats_jogo = {
                         "chutes_totais": int(jogo.get('shots_total', 0)),
                         "chutes_no_gol": int(jogo.get('shots_on_target', 0)),
@@ -70,41 +107,40 @@ for loop in range(100):
                         "fator_historico": int(jogo.get('history_score', 80))
                     }
                     
-                    # Processa a classificação por estrelas
                     nota_estrelas = calcular_estrelas(stats_jogo)
                     
-                    # 🚨 REGRA DO PROJETO 3: Filtro rígido real. Só emite sinal se for 4 ou 5 estrelas
+                    # Regra de filtro estrito: Só emite o sinal se bater 4 ou 5 estrelas
                     if nota_estrelas >= 4:
-                        time_casa = jogo.get('home_name')
-                        time_fora = jogo.get('away_name')
                         liga = jogo.get('league_name', 'Liga Principal')
+                        icones_estrelas = "*" * nota_estrelas
                         
-                        # Montagem do layout scannable profissional com a identidade do projeto
-                        icones_estrelas = "⭐" * nota_estrelas
-                        msg = f"⚽ *ROBÔ OVER 0.5 HT: {icones_estrelas}* ⚽\n"
-                        msg += f"_Volume ofensivo extremo detectado no minuto {minuto}_\n\n"
-                        msg += f"📌 *Partida:* {time_casa} vs {time_fora}\n"
-                        msg += f" • *Competição:* {liga}\n"
-                        msg += f" • *Placar Atual:* {gols_casa} x {gols_fora}\n"
-                        msg += f" • *Ataques Perigosos:* {stats_jogo['ataques_perigosos']}\n"
-                        msg += f" • *Finalizações no Alvo:* {stats_jogo['chutes_no_gol']}\n"
-                        msg += f" • *Escanteios:* {stats_jogo['escanteios']}\n\n"
-                        msg += f"⚠️ *Gatilho de Entrada:* Buscar linha de *Over 0.5 Gols HT* no mercado ao vivo (Live) se o placar mantiver o 0x0 pelas próximas odds.\n"
+                        # 📝 NOVO PADRÃO AJUSTADO CONFORME SOLICITADO
+                        msg_entrada = f"🚨 *ALERTA DE ENTRADA* 🚨\n"
+                        msg_entrada += f"_Volume ofensivo extremo detectado no minuto {minuto}_\n\n"
+                        msg_entrada += f"📌 *Partida:* {time_casa} vs {time_fora}\n"
+                        msg_entrada += f" • *Competição:* {liga}\n"
+                        msg_entrada += f" • *Placar Atual:* {gols_casa} x {gols_fora}\n"
+                        msg_entrada += f" • *Ataques Perigosos:* {stats_jogo['ataques_perigosos']}\n"
+                        msg_entrada += f" • *Finalizações no Alvo:* {stats_jogo['chutes_no_gol']}\n"
+                        msg_entrada += f" • *Escanteios:* {stats_jogo['escanteios']}\n"
+                        msg_entrada += f" • *Avaliação:* {icones_estrelas}\n\n"
+                        msg_entrada += f"⚠️ *Gatilho:* Buscar linha de *Over 0.5 Gols HT* no mercado ao vivo se o placar mantiver o 0x0 pelas próximas odds."
                         
-                        # Disparo blindado em blocos para o canal do Telegram
-                        site_base = "https://" + "api.telegram.org"
-                        pasta_bot = "/bot" + TELEGRAM_TOKEN
-                        acao_envio = "/sendMessage"
-                        url_final = site_base + pasta_bot + acao_envio
+                        # Dispara o Alerta de Entrada
+                        enviar_telegram(msg_entrada)
                         
-                        payload = {"chat_id": TELEGRAM_CHAT_ID, "text": msg, "parse_mode": "Markdown"}
-                        requests.post(url_final, json=payload, timeout=10)
+                        # Registra o jogo na memória para monitorar o Green nas próximas varreduras
+                        jogos_sinalizados[jogo_id] = {
+                            "gols_iniciais": placar_total,
+                            "time_casa": time_casa,
+                            "time_fora": time_fora
+                        }
                         
             except:
                 continue
                 
     except Exception as e:
-        print(f"Erro temporário de conexão com a rede: {e}")
+        print(f"Erro temporário de conexão com os dados: {e}")
         
-    # Espera 30 segundos para efetuar a próxima leitura de alta frequência
+    # Espera 30 segundos para efetuar a próxima varredura em tempo real
     time.sleep(30)
