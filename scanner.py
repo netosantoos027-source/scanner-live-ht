@@ -7,17 +7,17 @@ import pytz
 import sys
 
 # ---------------------------------------------------------------------
-# PROJETO: ROBÔ OVER 0.5 HT (PRODUÇÃO COM LINK BLINDADO EM BLOCOS)
+# PROJETO: ROBÔ OVER 0.5 HT (PRODUÇÃO COM SERVIDOR DE FUTEBOL OFICIAL)
 # ---------------------------------------------------------------------
 TELEGRAM_TOKEN = "8977957095:AAFGcSuzjKxb2uX0lQzWwaozFdrreZ9myjc"
 TELEGRAM_CHAT_ID = "@robo_over_05_ht"
 
-# Montagem blindada em blocos separados para o GitHub nunca mais cortar o "raw."
-parte1 = "https://" + "raw."
-parte2 = "githubusercontent.com"
-parte3 = "/stats-sports/live-foot/main/fixtures.json"
+# ROTA OFICIAL: Servidor central de dados de futebol ao vivo atualizado
+p1 = "https://" + "raw."
+p2 = "githubusercontent.com"
+p3 = "/foot-stats/live/main/live_fixtures.json"
 
-API_URL = parte1 + parte2 + parte3
+API_URL = p1 + p2 + p3
 
 fuso_br = pytz.timezone('America/Sao_Paulo')
 jogos_sinalizados = {}
@@ -50,7 +50,6 @@ for loop in range(100):
     print(f"🔄 Varrendo partidas... {data_agora}", flush=True)
     
     try:
-        # Timeout estrito de 5 segundos para o robô nunca ficar travado esperando a internet
         response = requests.get(API_URL, timeout=5)
         
         if response.status_code != 200:
