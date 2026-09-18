@@ -6,10 +6,13 @@ from datetime import datetime
 import pytz
 
 # ---------------------------------------------------------------------
-# PROJETO: ROBÔ OVER 0.5 HT (CONFIGURAÇÃO DE CREDENCIAIS OFICIAIS)
+# PROJETO: ROBÔ OVER 0.5 HT (CONFIGURAÇÃO DO CANAL EXCLUSIVO DE FUTEBOL)
 # ---------------------------------------------------------------------
+# Reutilizando o seu Bot aprovado que já está integrado ao ecossistema
 TELEGRAM_TOKEN = "8977957095:AAFGcSuzjKxb2uX0lQzWwaozFdrreZ9myjc"
-TELEGRAM_CHAT_ID = "@sinais_botb3"
+
+# Endereço oficial do seu novo canal de futebol
+TELEGRAM_CHAT_ID = "@robo_over_05_ht"
 
 # Servidor público de dados esportivos em tempo real
 API_URL = "https://b3score.com" 
@@ -31,7 +34,7 @@ def calcular_estrelas(stats):
     # 5. Fator Histórico/Tabela (Média das últimas partidas das equipes)
     if stats['fator_historico'] >= 75: estrelas += 1
         
-    return max(1, min(estrelas, 5)) # Garante que a nota fique estritamente entre 1 e 5
+    return max(1, min(estrelas, 5))
 
 print("📡 [SISTEMA ATIVO] Robô Over 0.5 HT iniciado no modo de monitoramento contínuo...")
 
@@ -95,10 +98,10 @@ for loop in range(100):
                         site_base = "https://" + "api.telegram.org"
                         pasta_bot = "/bot" + TELEGRAM_TOKEN
                         acao_envio = "/sendMessage"
-                        url_telegram = site_base + pasta_bot + acao_envio
+                        url_final = site_base + pasta_bot + acao_envio
                         
                         payload = {"chat_id": TELEGRAM_CHAT_ID, "text": msg, "parse_mode": "Markdown"}
-                        requests.post(url_telegram, json=payload, timeout=10)
+                        requests.post(url_final, json=payload, timeout=10)
                         
             except:
                 continue
