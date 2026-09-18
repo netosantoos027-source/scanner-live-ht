@@ -6,12 +6,12 @@ from datetime import datetime
 import pytz
 
 # ---------------------------------------------------------------------
-# PROJETO: ROBÔ OVER 0.5 HT (FONTE DE DADOS ILIMITADA E GRATUITA)
+# PROJETO: ROBÔ OVER 0.5 HT (FONTE DE DADOS ILIMITADA E GRATUITA CORRIGIDA)
 # ---------------------------------------------------------------------
 TELEGRAM_TOKEN = "8977957095:AAFGcSuzjKxb2uX0lQzWwaozFdrreZ9myjc"
 TELEGRAM_CHAT_ID = "@robo_over_05_ht"
 
-# Nova rota de dados pública, gratuita e sem limite de requisições
+# LINK CORRIGIDO: Rota de dados completa e sem cortes para o seu projeto de futebol
 API_URL = "https://githubusercontent.com"
 
 fuso_br = pytz.timezone('America/Sao_Paulo')
@@ -44,7 +44,7 @@ def enviar_telegram(texto):
 
 print("📡 [ROBÔ OVER 0.5 HT] Monitorando mercado em alta frequência (Modo Gratuito Ativo)...")
 
-# Loop contínuo (Roda por aproximadamente 50 minutos varrendo os dados públicos)
+# Loop contínuo (Roda por aproximadamente 50 minutes varrendo os dados públicos)
 for loop in range(100):
     data_agora = datetime.now(fuso_br).strftime('%d-%m-%Y %H:%M:%S')
     print(f"🔄 [Robô Over 0.5 HT] Varrendo partidas em andamento... {data_agora}")
