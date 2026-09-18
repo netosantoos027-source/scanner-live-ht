@@ -6,12 +6,9 @@ from datetime import datetime
 import pytz
 
 # ---------------------------------------------------------------------
-# PROJETO: ROBÔ OVER 0.5 HT (CONFIGURAÇÃO DO CANAL EXCLUSIVO DE FUTEBOL)
+# PROJETO: ROBÔ OVER 0.5 HT (PRODUÇÃO E ESTRATÉGIA REAL ATIVADA)
 # ---------------------------------------------------------------------
-# Reutilizando o seu Bot aprovado que já está integrado ao ecossistema
 TELEGRAM_TOKEN = "8977957095:AAFGcSuzjKxb2uX0lQzWwaozFdrreZ9myjc"
-
-# Endereço oficial do seu novo canal de futebol
 TELEGRAM_CHAT_ID = "@robo_over_05_ht"
 
 # Servidor público de dados esportivos em tempo real
@@ -36,7 +33,7 @@ def calcular_estrelas(stats):
         
     return max(1, min(estrelas, 5))
 
-print("📡 [SISTEMA ATIVO] Robô Over 0.5 HT iniciado no modo de monitoramento contínuo...")
+print("📡 [SISTEMA EM PRODUÇÃO] Robô Over 0.5 HT monitorando o mercado ao vivo...")
 
 # O robô executa um loop de escaneamento de alta frequência (Aproximadamente 50 minutos por ciclo)
 for loop in range(100):
@@ -76,13 +73,13 @@ for loop in range(100):
                     # Processa a classificação por estrelas
                     nota_estrelas = calcular_estrelas(stats_jogo)
                     
-                    # 🚨 REGRA DO PROJETO 3: Filtro rígido. Só emite sinal se for 4 ou 5 estrelas
+                    # 🚨 REGRA DO PROJETO 3: Filtro rígido real. Só emite sinal se for 4 ou 5 estrelas
                     if nota_estrelas >= 4:
                         time_casa = jogo.get('home_name')
                         time_fora = jogo.get('away_name')
                         liga = jogo.get('league_name', 'Liga Principal')
                         
-                        # Montagem do layout scannable profissional com a nova identidade do projeto
+                        # Montagem do layout scannable profissional com a identidade do projeto
                         icones_estrelas = "⭐" * nota_estrelas
                         msg = f"⚽ *ROBÔ OVER 0.5 HT: {icones_estrelas}* ⚽\n"
                         msg += f"_Volume ofensivo extremo detectado no minuto {minuto}_\n\n"
