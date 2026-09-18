@@ -6,7 +6,7 @@ from datetime import datetime
 import pytz
 
 # ---------------------------------------------------------------------
-# PROJETO: ROBÔ OVER 0.5 HT (LAYOUT AJUSTADO + SISTEMA DE GREEN)
+# PROJETO: ROBÔ OVER 0.5 HT (LAYOUT AJUSTADO + GREEN DETALHADO)
 # ---------------------------------------------------------------------
 TELEGRAM_TOKEN = "8977957095:AAFGcSuzjKxb2uX0lQzWwaozFdrreZ9myjc"
 TELEGRAM_CHAT_ID = "@robo_over_05_ht"
@@ -16,8 +16,7 @@ API_URL = "https://b3score.com"
 
 fuso_br = pytz.timezone('America/Sao_Paulo')
 
-# Dicionário na memória do robô para rastrear quais jogos receberam sinal de entrada
-# Isso evita que o robô envie o mesmo alerta repetidas vezes e monitora o Green
+# Dicionário para rastrear os jogos sinalizados e monitorar o Green
 jogos_sinalizados = {}
 
 def calcular_estrelas(stats):
@@ -31,7 +30,7 @@ def calcular_estrelas(stats):
     return max(1, min(estrelas, 5))
 
 def enviar_telegram(texto):
-    """ Função centralizada e blindada para disparo de alertas """
+    """ Função centralizada para disparo de alertas """
     site_base = "https://" + "api.telegram.org"
     pasta_bot = "/bot" + TELEGRAM_TOKEN
     acao_envio = "/sendMessage"
@@ -58,7 +57,7 @@ for loop in range(100):
             
         jogos = response.json().get('data', [])
         
-        for jogo in jogos:
+        for jogo in games_list:
             try:
                 jogo_id = str(jogo.get('id', ''))
                 minuto = int(jogo.get('minute', 0))
@@ -69,33 +68,30 @@ for loop in range(100):
                 placar_total = gols_casa + gols_fora
                 
                 # ---------------------------------------------------------------------
-                # 🟢 SISTEMA DE MONITORAMENTO DE GREEN
+                # 🟢 SISTEMA DE MONITORAMENTO DE GREEN COM DADOS DO GOL
                 # ---------------------------------------------------------------------
-                # Se o jogo já recebeu um Alerta antes e ainda está dentro da janela do tempo
                 if jogo_id in jogos_sinalizados and 7 <= minuto <= 17:
-                    # Se o placar mudou (saiu gol) em relação ao momento da entrada (que era 0x0)
                     if placar_total > 0 and jogos_sinalizados[jogo_id]['gols_iniciais'] == 0:
+                        
+                        # Captura dinamicamente quem marcou o gol na API (padrão se não disponível)
+                        autor_gol = jogo.get('last_scorer', 'Autor do gol não informado')
+                        
+                        # 📝 FORMATO DA COMEMORAÇÃO ATUALIZADO COM DADOS REAIS
                         msg_green = f"✅ *GREEENNN!!!* ✅\n"
-                        msg_green += f"⚽ Gol confirmado no primeiro tempo!\n"
-                        msg_green += f"📌 *Partida:* {time_casa} vs {time_fora}\n"
-                        msg_green += f"⏱️ *Momento do Gol:* Minuto {minuto}"
+                        msg_green += f"🏃‍♂️ *Partida Atualizada:* {time_casa} {gols_casa} x {gols_fora} {time_fora}\n"
+                        msg_green += f"⚽ *Marcador:* {autor_gol}\n"
+                        msg_green += f"⏱️ *Minuto do Gol:* {minuto}'"
                         
                         enviar_telegram(msg_green)
-                        # Remove da lista para não enviar o Green duas vezes no mesmo jogo
                         del jogos_sinalizados[jogo_id]
                         continue
 
                 # ---------------------------------------------------------------------
                 # 🚨 SISTEMA DE CAPTURA DE ALERTA DE ENTRADA
                 # ---------------------------------------------------------------------
-                # Filtra estritamente a janela operacional entre os minutos 7 e 17
                 if 7 <= minuto <= 17:
-                    
-                    # Se o jogo já foi alertado nesta rodada, ignoramos para não inundar o canal
                     if jogo_id in jogos_sinalizados:
                         continue
-                        
-                    # Se já saiu gol antes da análise, o jogo é descartado
                     if placar_total > 0:
                         continue
                         
@@ -109,12 +105,10 @@ for loop in range(100):
                     
                     nota_estrelas = calcular_estrelas(stats_jogo)
                     
-                    # Regra de filtro estrito: Só emite o sinal se bater 4 ou 5 estrelas
                     if nota_estrelas >= 4:
                         liga = jogo.get('league_name', 'Liga Principal')
                         icones_estrelas = "*" * nota_estrelas
                         
-                        # 📝 NOVO PADRÃO AJUSTADO CONFORME SOLICITADO
                         msg_entrada = f"🚨 *ALERTA DE ENTRADA* 🚨\n"
                         msg_entrada += f"_Volume ofensivo extremo detectado no minuto {minuto}_\n\n"
                         msg_entrada += f"📌 *Partida:* {time_casa} vs {time_fora}\n"
@@ -126,10 +120,8 @@ for loop in range(100):
                         msg_entrada += f" • *Avaliação:* {icones_estrelas}\n\n"
                         msg_entrada += f"⚠️ *Gatilho:* Buscar linha de *Over 0.5 Gols HT* no mercado ao vivo se o placar mantiver o 0x0 pelas próximas odds."
                         
-                        # Dispara o Alerta de Entrada
                         enviar_telegram(msg_entrada)
                         
-                        # Registra o jogo na memória para monitorar o Green nas próximas varreduras
                         jogos_sinalizados[jogo_id] = {
                             "gols_iniciais": placar_total,
                             "time_casa": time_casa,
@@ -142,5 +134,4 @@ for loop in range(100):
     except Exception as e:
         print(f"Erro temporário de conexão com os dados: {e}")
         
-    # Espera 30 segundos para efetuar a próxima varredura em tempo real
     time.sleep(30)
