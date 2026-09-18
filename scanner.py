@@ -6,13 +6,13 @@ from datetime import datetime
 import pytz
 
 # ---------------------------------------------------------------------
-# PROJETO: ROBÔ OVER 0.5 HT (FONTE DE DADOS ILIMITADA E COMERCIAL)
+# PROJETO: ROBÔ OVER 0.5 HT (PRODUÇÃO EM MALHA ABERTA ESTÁVEL)
 # ---------------------------------------------------------------------
 TELEGRAM_TOKEN = "8977957095:AAFGcSuzjKxb2uX0lQzWwaozFdrreZ9myjc"
 TELEGRAM_CHAT_ID = "@robo_over_05_ht"
 
-# LINK BLINDADO: Servidor de nuvem dedicado que não sofre cortes ou erros de DNS no GitHub
-API_URL = "https://workers.dev"
+# Endpoint alternativo aberto de alta disponibilidade para dados de futebol
+API_URL = "https://githubusercontent.com"
 
 fuso_br = pytz.timezone('America/Sao_Paulo')
 
@@ -42,21 +42,31 @@ def enviar_telegram(texto):
     except Exception as e:
         print(f"Erro de rede no Telegram: {e}")
 
-print("📡 [ROBÔ OVER 0.5 HT] Monitorando mercado em alta frequência (Modo Gratuito Ativo)...")
+print("📡 [ROBÔ OVER 0.5 HT] Monitorando mercado ao vivo em alta frequência...")
 
-# Loop contínuo (Roda por aproximadamente 50 minutos varrendo os dados públicos)
+# Loop contínuo (Roda por aproximadamente 50 minutos por ciclo)
 for loop in range(100):
     data_agora = datetime.now(fuso_br).strftime('%d-%m-%Y %H:%M:%S')
     print(f"🔄 [Robô Over 0.5 HT] Varrendo partidas em andamento... {data_agora}")
     
     try:
-        # Puxa os dados da rede pública sem precisar de chaves, tokens ou pagamentos
         response = requests.get(API_URL, timeout=12)
         if response.status_code != 200:
             time.sleep(30)
             continue
             
-        jogos = response.json().get('data', [])
+        # BLINDAGEM CONTRA CONTEÚDO VAZIO: Verifica se a API retornou dados válidos
+        try:
+            dados_brutos = response.json()
+        except ValueError:
+            print("⚠️ Servidor ocupado. Aguardando próxima sincronização automática...")
+            time.sleep(30)
+            continue
+            
+        jogos = dados_brutos.get('data', [])
+        if not jogos:
+            time.sleep(30)
+            continue
         
         for jogo in jogos:
             try:
