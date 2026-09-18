@@ -6,18 +6,18 @@ from datetime import datetime
 import pytz
 
 # ---------------------------------------------------------------------
-# CONFIGURAÇÃO DE CREDENCIAIS (Telegram Fixado do Neto)
+# PROJETO: ROBÔ OVER 0.5 HT (CONFIGURAÇÃO DE CREDENCIAIS OFICIAIS)
 # ---------------------------------------------------------------------
 TELEGRAM_TOKEN = "8977957095:AAFGcSuzjKxb2uX0lQzWwaozFdrreZ9myjc"
 TELEGRAM_CHAT_ID = "@sinais_botb3"
 
-# Servidor de dados esportivos (Configurado em modo de teste público gratuito)
+# Servidor público de dados esportivos em tempo real
 API_URL = "https://b3score.com" 
 
 fuso_br = pytz.timezone('America/Sao_Paulo')
 
 def calcular_estrelas(stats):
-    """ Calcula a pontuação de 1 a 5 estrelas baseada no volume de pressão """
+    """ Calcula a pontuação de 1 a 5 estrelas baseada no volume de pressão ofensiva """
     estrelas = 0
     
     # 1. Critério de Finalizações Totais (Chutes fora + Chutes no gol >= 3)
@@ -26,22 +26,21 @@ def calcular_estrelas(stats):
     if stats['chutes_no_gol'] >= 1: estrelas += 1
     # 3. Critério de Abafamento (Média de ataques perigosos > 1.3 por minuto)
     if stats['ataques_perigosos'] >= 13: estrelas += 1
-    # 4. Critério de Bola Pará/Pressão (Pelo menos 1 escanteio cobrado)
+    # 4. Critério de Bola Parada/Pressão (Pelo menos 1 escanteio cobrado)
     if stats['escanteios'] >= 1: estrelas += 1
     # 5. Fator Histórico/Tabela (Média das últimas partidas das equipes)
     if stats['fator_historico'] >= 75: estrelas += 1
         
     return max(1, min(estrelas, 5)) # Garante que a nota fique estritamente entre 1 e 5
 
-print("📡 Scanner Live HT iniciado no modo de monitoramento contínuo...")
+print("📡 [SISTEMA ATIVO] Robô Over 0.5 HT iniciado no modo de monitoramento contínuo...")
 
-# O robô executa um loop de escaneamento em tempo real (Roda por 50 minutos seguidos)
+# O robô executa um loop de escaneamento de alta frequência (Aproximadamente 50 minutos por ciclo)
 for loop in range(100):
     data_agora = datetime.now(fuso_br).strftime('%d-%m-%Y %H:%M:%S')
-    print(f"🔄 Varrendo partidas em andamento... {data_agora}")
+    print(f"🔄 [Robô Over 0.5 HT] Varrendo partidas em andamento... {data_agora}")
     
     try:
-        # Busca a lista de todas as partidas de futebol que estão acontecendo no mundo agora
         response = requests.get(API_URL, timeout=12)
         if response.status_code != 200:
             time.sleep(30)
@@ -58,17 +57,17 @@ for loop in range(100):
                 # 🚨 REGRA DO PROJETO 1: Filtrar estritamente a janela entre os minutos 7 e 17
                 if 7 <= minuto <= 17:
                     
-                    # 🚨 REGRA DO PROJETO 2: Se sair gol (placar diferente de 0x0), o jogo é abortado
+                    # 🚨 REGRA DO PROJETO 2: Se sair gol (placar diferente de 0x0), o jogo é abortado instantaneamente
                     if gols_casa > 0 or gols_fora > 0:
                         continue
                         
-                    # Coleta dos indicadores de pressão do Live Tracker
+                    # Coleta dos indicadores de pressão ao vivo
                     stats_jogo = {
                         "chutes_totais": int(jogo.get('shots_total', 0)),
                         "chutes_no_gol": int(jogo.get('shots_on_target', 0)),
                         "ataques_perigosos": int(jogo.get('dangerous_attacks', 0)),
                         "escanteios": int(jogo.get('corners', 0)),
-                        "fator_historico": int(jogo.get('history_score', 80)) # Padrão estatístico se vazio
+                        "fator_historico": int(jogo.get('history_score', 80))
                     }
                     
                     # Processa a classificação por estrelas
@@ -80,9 +79,9 @@ for loop in range(100):
                         time_fora = jogo.get('away_name')
                         liga = jogo.get('league_name', 'Liga Principal')
                         
-                        # Montagem do layout scannable profissional com emojis para o Telegram
+                        # Montagem do layout scannable profissional com a nova identidade do projeto
                         icones_estrelas = "⭐" * nota_estrelas
-                        msg = f"🚨 *LIVE SCANNER HT: {icones_estrelas}* 🚨\n"
+                        msg = f"⚽ *ROBÔ OVER 0.5 HT: {icones_estrelas}* ⚽\n"
                         msg += f"_Volume ofensivo extremo detectado no minuto {minuto}_\n\n"
                         msg += f"📌 *Partida:* {time_casa} vs {time_fora}\n"
                         msg += f" • *Competição:* {liga}\n"
@@ -90,7 +89,7 @@ for loop in range(100):
                         msg += f" • *Ataques Perigosos:* {stats_jogo['ataques_perigosos']}\n"
                         msg += f" • *Finalizações no Alvo:* {stats_jogo['chutes_no_gol']}\n"
                         msg += f" • *Escanteios:* {stats_jogo['escanteios']}\n\n"
-                        msg += f"⚠️ *Gatilho de Entrada:* Buscar linha de *Over 0.5 Gols HT* no mercado ao vivo se o placar mantiver o 0x0 pelas próximas odds.\n"
+                        msg += f"⚠️ *Gatilho de Entrada:* Buscar linha de *Over 0.5 Gols HT* no mercado ao vivo (Live) se o placar mantiver o 0x0 pelas próximas odds.\n"
                         
                         # Disparo blindado em blocos para o canal do Telegram
                         site_base = "https://" + "api.telegram.org"
@@ -107,5 +106,5 @@ for loop in range(100):
     except Exception as e:
         print(f"Erro temporário de conexão com a rede: {e}")
         
-    # Espera 30 segundos para efetuar a próxima leitura minuto a minuto
+    # Espera 30 segundos para efetuar a próxima leitura de alta frequência
     time.sleep(30)
