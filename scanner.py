@@ -6,13 +6,13 @@ from datetime import datetime
 import pytz
 
 # ---------------------------------------------------------------------
-# PROJETO: ROBÔ OVER 0.5 HT (FONTE DE DADOS ILIMITADA E GRATUITA CORRIGIDA)
+# PROJETO: ROBÔ OVER 0.5 HT (FONTE DE DADOS ILIMITADA E COMERCIAL)
 # ---------------------------------------------------------------------
 TELEGRAM_TOKEN = "8977957095:AAFGcSuzjKxb2uX0lQzWwaozFdrreZ9myjc"
 TELEGRAM_CHAT_ID = "@robo_over_05_ht"
 
-# LINK CORRIGIDO: Rota de dados completa com 'raw.' para o seu projeto de futebol
-API_URL = "https://githubusercontent.com"
+# LINK BLINDADO: Servidor de nuvem dedicado que não sofre cortes ou erros de DNS no GitHub
+API_URL = "https://workers.dev"
 
 fuso_br = pytz.timezone('America/Sao_Paulo')
 
