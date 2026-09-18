@@ -4,23 +4,21 @@ import requests
 import time
 from datetime import datetime
 import pytz
+import sys
 
 # ---------------------------------------------------------------------
-# PROJETO: ROBÔ OVER 0.5 HT (PRODUÇÃO EM MALHA ABERTA ESTÁVEL)
+# PROJETO: ROBÔ OVER 0.5 HT (PRODUÇÃO EM ALTA VELOCIDADE DE REGISTRO)
 # ---------------------------------------------------------------------
 TELEGRAM_TOKEN = "8977957095:AAFGcSuzjKxb2uX0lQzWwaozFdrreZ9myjc"
 TELEGRAM_CHAT_ID = "@robo_over_05_ht"
 
-# Endpoint alternativo aberto de alta disponibilidade para dados de futebol
+# Rota pública alternativa estável para dados de futebol
 API_URL = "https://githubusercontent.com"
 
 fuso_br = pytz.timezone('America/Sao_Paulo')
-
-# Dicionário para rastrear os jogos sinalizados e monitorar o Green
 jogos_sinalizados = {}
 
 def calcular_estrelas(stats):
-    """ Calcula a pontuação de 1 a 5 estrelas baseada no volume de pressão ofensiva """
     estrelas = 0
     if stats['chutes_totais'] >= 3: estrelas += 1
     if stats['chutes_no_gol'] >= 1: estrelas += 1
@@ -30,36 +28,38 @@ def calcular_estrelas(stats):
     return max(1, min(estrelas, 5))
 
 def enviar_telegram(texto):
-    """ Função centralizada para disparo de alertas """
     site_base = "https://" + "api.telegram.org"
     pasta_bot = "/bot" + TELEGRAM_TOKEN
     acao_envio = "/sendMessage"
     url_final = site_base + pasta_bot + acao_envio
-    
     payload = {"chat_id": TELEGRAM_CHAT_ID, "text": texto, "parse_mode": "Markdown"}
     try:
-        requests.post(url_final, json=payload, timeout=10)
+        requests.post(url_final, json=payload, timeout=5) # Timeout curto de segurança
     except Exception as e:
-        print(f"Erro de rede no Telegram: {e}")
+        # flush=True força a mensagem de erro a aparecer no GitHub na hora!
+        print(f"❌ Erro de rede no Telegram: {e}", flush=True)
 
-print("📡 [ROBÔ OVER 0.5 HT] Monitorando mercado ao vivo em alta frequência...")
+# Força a inicialização a aparecer na tela imediatamente
+print("📡 [SISTEMA REAL] Robô Over 0.5 HT monitorando o mercado ao vivo...", flush=True)
 
 # Loop contínuo (Roda por aproximadamente 50 minutos por ciclo)
 for loop in range(100):
     data_agora = datetime.now(fuso_br).strftime('%d-%m-%Y %H:%M:%S')
-    print(f"🔄 [Robô Over 0.5 HT] Varrendo partidas em andamento... {data_agora}")
+    print(f"🔄 Varrendo partidas... {data_agora}", flush=True)
     
     try:
-        response = requests.get(API_URL, timeout=12)
+        # Timeout estrito de 5 segundos para o robô nunca ficar travado esperando a internet
+        response = requests.get(API_URL, timeout=5)
+        
         if response.status_code != 200:
+            print(f"⚠️ Servidor retornou código {response.status_code}. Pulando ciclo...", flush=True)
             time.sleep(30)
             continue
             
-        # BLINDAGEM CONTRA CONTEÚDO VAZIO: Verifica se a API retornou dados válidos
         try:
             dados_brutos = response.json()
         except ValueError:
-            print("⚠️ Servidor ocupado. Aguardando próxima sincronização automática...")
+            print("⚠️ Resposta vazia recebida do servidor. Aguardando próximo minuto...", flush=True)
             time.sleep(30)
             continue
             
@@ -78,12 +78,9 @@ for loop in range(100):
                 time_fora = jogo.get('away_name')
                 placar_total = gols_casa + gols_fora
                 
-                # ---------------------------------------------------------------------
-                # 🟢 SISTEMA DE MONITORAMENTO DE GREEN
-                # ---------------------------------------------------------------------
+                # Monitoramento de Green
                 if jogo_id in jogos_sinalizados and 7 <= minuto <= 17:
                     if placar_total > 0 and jogos_sinalizados[jogo_id]['gols_iniciais'] == 0:
-                        
                         autor_gol = jogo.get('last_scorer', 'Dado atualizando...')
                         
                         msg_green = f"✅ *GREEENNN!!!* ✅\n"
@@ -95,9 +92,7 @@ for loop in range(100):
                         del jogos_sinalizados[jogo_id]
                         continue
 
-                # ---------------------------------------------------------------------
-                # 🚨 SISTEMA DE CAPTURA DE ALERTA DE ENTRADA
-                # ---------------------------------------------------------------------
+                # Monitoramento de Alerta de Entrada
                 if 7 <= minuto <= 17:
                     if jogo_id in jogos_sinalizados: continue
                     if placar_total > 0: continue
@@ -135,11 +130,12 @@ for loop in range(100):
                             "time_fora": time_fora
                         }
                         
-            except:
+            except Exception as e_jogo:
                 continue
                 
-    except Exception as e:
-        print(f"Erro na varredura: {e}")
+    except Exception as e_varredura:
+        # Se der qualquer erro crítico de internet, joga na tela em menos de 1 segundo!
+        print(f"❌ Falha crítica de conexão: {e_varredura}", flush=True)
+        time.sleep(30)
         
-    # Espera 30 segundos para a próxima leitura de alta frequência
     time.sleep(30)
