@@ -7,13 +7,17 @@ import pytz
 import sys
 
 # ---------------------------------------------------------------------
-# PROJETO: ROBÔ OVER 0.5 HT (PRODUÇÃO EM ALTA VELOCIDADE DE REGISTRO)
+# PROJETO: ROBÔ OVER 0.5 HT (PRODUÇÃO COM LINK BLINDADO EM BLOCOS)
 # ---------------------------------------------------------------------
 TELEGRAM_TOKEN = "8977957095:AAFGcSuzjKxb2uX0lQzWwaozFdrreZ9myjc"
 TELEGRAM_CHAT_ID = "@robo_over_05_ht"
 
-# Rota pública alternativa estável para dados de futebol
-API_URL = "https://githubusercontent.com"
+# Montagem blindada em blocos separados para o GitHub nunca mais cortar o "raw."
+parte1 = "https://" + "raw."
+parte2 = "githubusercontent.com"
+parte3 = "/stats-sports/live-foot/main/fixtures.json"
+
+API_URL = parte1 + parte2 + parte3
 
 fuso_br = pytz.timezone('America/Sao_Paulo')
 jogos_sinalizados = {}
@@ -34,12 +38,10 @@ def enviar_telegram(texto):
     url_final = site_base + pasta_bot + acao_envio
     payload = {"chat_id": TELEGRAM_CHAT_ID, "text": texto, "parse_mode": "Markdown"}
     try:
-        requests.post(url_final, json=payload, timeout=5) # Timeout curto de segurança
+        requests.post(url_final, json=payload, timeout=5)
     except Exception as e:
-        # flush=True força a mensagem de erro a aparecer no GitHub na hora!
         print(f"❌ Erro de rede no Telegram: {e}", flush=True)
 
-# Força a inicialização a aparecer na tela imediatamente
 print("📡 [SISTEMA REAL] Robô Over 0.5 HT monitorando o mercado ao vivo...", flush=True)
 
 # Loop contínuo (Roda por aproximadamente 50 minutos por ciclo)
@@ -134,7 +136,6 @@ for loop in range(100):
                 continue
                 
     except Exception as e_varredura:
-        # Se der qualquer erro crítico de internet, joga na tela em menos de 1 segundo!
         print(f"❌ Falha crítica de conexão: {e_varredura}", flush=True)
         time.sleep(30)
         
