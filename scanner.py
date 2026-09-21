@@ -7,7 +7,7 @@ import pytz
 import sys
 
 # ---------------------------------------------------------------------
-# PROJETO: ROBÔ OVER 0.5 HT (PRODUÇÃO COM FILTROS FLEXIBILIZADOS)
+# PROJETO: ROBÔ OVER 0.5 HT (MATRIZ AJUSTADA: 3 E 4 ESTRELAS PERSONALIZADAS)
 # ---------------------------------------------------------------------
 TELEGRAM_TOKEN = "8977957095:AAFGcSuzjKxb2uX0lQzWwaozFdrreZ9myjc"
 TELEGRAM_CHAT_ID = "@robo_over_05_ht"
@@ -22,21 +22,34 @@ fuso_br = pytz.timezone('America/Sao_Paulo')
 jogos_sinalizados = {}
 
 def calcular_estrelas(stats):
-    """ Filtro quantitativo ajustado para maior sensibilidade na janela 7-17' """
-    estrelas = 0
+    """ Calcula a nota em estrelas baseada estritamente nos novos critérios do Neto """
+    chutes = stats['chutes_totais']
+    no_alvo = stats['chutes_no_gol']
+    escanteios = stats['escanteios']
+    ataques = stats['ataques_perigosos']
     
-    # 1. Critério de Finalizações Totais (Flexibilizado para 2 chutes)
-    if stats['chutes_totais'] >= 2: estrelas += 1
-    # 2. Critério de Perigo Real (Mantido pelo menos 1 chute no gol)
-    if stats['chutes_no_gol'] >= 1: estrelas += 1
-    # 3. Critério de Abafamento (Flexibilizado para 9 ataques perigosos)
-    if stats['ataques_perigosos'] >= 9: estrelas += 1
-    # 4. Critério de Pressão Lateral (Pelo menos 1 escanteio)
-    if stats['escanteios'] >= 1: estrelas += 1
-    # 5. Fator Histórico das Equipes (Mantido peso base)
-    if stats['fator_historico'] >= 75: estrelas += 1
+    # Base inicial de pontos pelos ataques perigosos flexibilizados (mínimo 7)
+    if ataques < 7:
+        return 1
+
+    # 🚨 REGRA PROJETO: 4 ESTRELAS (Perfil Eficiente)
+    # Exige: 3 ou mais finalizações totais E pelo menos 1 no alvo
+    if chutes >= 3 and no_alvo >= 1 and ataques >= 9:
+        # Bônus para 5 Estrelas se o jogo for um massacre completo com escanteio e 13+ ataques
+        if chutes >= 5 and escanteios >= 2 and ataques >= 13:
+            return 5
+        return 4
+
+    # 🚨 REGRA PROJETO: 3 ESTRELAS (Perfil Abafamento Geral)
+    # Exige: 5 ou mais finalizações totais E pelo menos 1 no alvo E pelo menos 1 escanteio
+    if chutes >= 5 and no_alvo >= 1 and escanteios >= 1:
+        return 3
+
+    # Caso o jogo tenha ataques mas não cumpra os combos de 3 ou 4 estrelas acima
+    if chutes >= 2 or escanteios >= 1:
+        return 2
         
-    return max(1, min(estrelas, 5))
+    return 1
 
 def enviar_telegram(texto):
     """ Função centralizada para disparo de alertas rápidos """
@@ -50,7 +63,7 @@ def enviar_telegram(texto):
     except Exception as e:
         print(f"❌ Erro de rede no Telegram: {e}", flush=True)
 
-print("📡 [SISTEMA REAL] Robô Over 0.5 HT monitorando com sensibilidade calibrada...", flush=True)
+print("📡 [SISTEMA REAL] Robô Over 0.5 HT monitorando nova matriz de chutes...", flush=True)
 
 # Loop contínuo de alta frequência
 for loop in range(100):
@@ -115,8 +128,8 @@ for loop in range(100):
                     
                     nota_estrelas = calcular_estrelas(stats_jogo)
                     
-                    # Filtro mantido em 4 ou 5 estrelas, mas agora os critérios estão acessíveis
-                    if nota_estrelas >= 4:
+                    # O robô aceita e envia alertas no seu canal a partir de 3 estrelas
+                    if nota_estrelas >= 3:
                         liga = jogo.get('league_name', 'Liga Principal')
                         icones_estrelas = "*" * nota_estrelas
                         
