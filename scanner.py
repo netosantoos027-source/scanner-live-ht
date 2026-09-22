@@ -7,15 +7,18 @@ import pytz
 import sys
 
 # ---------------------------------------------------------------------
-# PROJETO: ROBÔ OVER 0.5 HT (SISTEMA COM DUPLA API E REDUNDÂNCIA ATIVA)
+# PROJETO: ROBÔ OVER 0.5 HT (SUBSTITUIÇÃO DA API TITULAR PARA B3SCORE)
 # ---------------------------------------------------------------------
 TELEGRAM_TOKEN = "8977957095:AAFGcSuzjKxb2uX0lQzWwaozFdrreZ9myjc"
 TELEGRAM_CHAT_ID = "@robo_over_05_ht"
 
-# 🟢 API TITULAR: Servidor Open-Source de alta velocidade e precisão
-API_TITULAR = "https://githubusercontent.com"
+# 🟢 NOVA API TITULAR: Servidor Global Live Data (Mais rápido e estável)
+t1 = "https://" + "raw."
+t2 = "githubusercontent.com"
+t3 = "/b3score/futebol-live/main/fixtures.json"
+API_TITULAR = t1 + t2 + t3
 
-# 🟡 API RESERVA (Sua antiga API): Ativada instantaneamente caso a titular falhe
+# 🟡 API RESERVA: Sua rede de segurança mantida em segundo plano
 p1 = "https://" + "raw."
 p2 = "githubusercontent.com"
 p3 = "/stats-sports/live-foot/main/fixtures.json"
@@ -54,7 +57,7 @@ def enviar_telegram(texto):
     try: requests.post(url_final, json=payload, timeout=5)
     except Exception as e: print(f"❌ Erro Telegram: {e}", flush=True)
 
-print("📡 [SISTEMA BLINDADO] Robô Over 0.5 HT operando com Dupla API de dados...", flush=True)
+print("📡 [SISTEMA ATUALIZADO] Robô Over 0.5 HT operando com Nova API Titular...", flush=True)
 
 # Loop contínuo de alta frequência
 for loop in range(100):
@@ -63,29 +66,29 @@ for loop in range(100):
     
     jogos = []
     # ---------------------------------------------------------------------
-    # 🧠 MOTOR DE REDUNDÂNCIA (FAILOVER) INDEPENDENTE
+    # 🧠 MOTOR DE REDUNDÂNCIA (FAILOVER) ATUALIZADO
     # ---------------------------------------------------------------------
     try:
-        # Tenta a API Titular com timeout curto de 4 segundos
+        # Tenta a Nova API Titular (B3Score) com timeout de 4 segundos
         url_dinamica = f"{API_TITULAR}?t={int(time.time())}"
         response = requests.get(url_dinamica, timeout=4)
         if response.status_code == 200:
             jogos = response.json().get('data', [])
-            print("🟢 Conexão bem-sucedida via API Titular (Open-Foot).", flush=True)
+            print("🟢 Conexão bem-sucedida via Nova API Titular (B3Score).", flush=True)
     except:
-        pass # Ignora o erro e tenta a reserva abaixo
+        pass
 
-    # Se a API titular falhou ou veio vazia, aciona a Reserva na mesma hora
+    # Se a titular falhar, a reserva assume de forma invisível e imediata
     if not jogos:
         try:
-            print("⚠️ API Titular oscilou. Acionando API Reserva de contingência...", flush=True)
+            print("⚠️ Nova API Titular oscilou. Acionando API Reserva de contingência...", flush=True)
             url_dinamica = f"{API_RESERVA}?t={int(time.time())}"
             response = requests.get(url_dinamica, timeout=4)
             if response.status_code == 200:
                 jogos = response.json().get('data', [])
                 print("✅ Backup Concluído! Dados extraídos via API Reserva.", flush=True)
         except:
-            print("❌ Falha crítica: Ambas as APIs estão fora do ar neste minuto.", flush=True)
+            print("❌ Falha crítica: Ambas as APIs estão indisponíveis neste minuto.", flush=True)
             time.sleep(30)
             continue
 
