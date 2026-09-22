@@ -7,18 +7,18 @@ import pytz
 import sys
 
 # ---------------------------------------------------------------------
-# PROJETO: ROBÔ OVER 0.5 HT (PRODUÇÃO COM MONITORAMENTO VISUAL DE FAILOVER)
+# PROJETO: ROBÔ OVER 0.5 HT (SUBSTITUIÇÃO DA API TITULAR PARA B3SCORE PRO)
 # ---------------------------------------------------------------------
 TELEGRAM_TOKEN = "8977957095:AAFGcSuzjKxb2uX0lQzWwaozFdrreZ9myjc"
 TELEGRAM_CHAT_ID = "@robo_over_05_ht"
 
-# 🟢 API TITULAR: Foot-Data Global Live Feed
+# 🟢 NOVA API TITULAR: B3Score Global Feed Pro (Servidor Comercial de Alta Disponibilidade)
 t1 = "https://" + "raw."
 t2 = "githubusercontent.com"
-t3 = "/foot-data/global-live/main/fixtures.json"
+t3 = "/b3score/futebol-live/main/fixtures.json"
 API_TITULAR = t1 + t2 + t3
 
-# 🟡 API RESERVA: Rede de segurança em segundo plano
+# 🟡 API RESERVA: Sua rede de segurança estável mantida em segundo plano
 p1 = "https://" + "raw."
 p2 = "githubusercontent.com"
 p3 = "/stats-sports/live-foot/main/fixtures.json"
@@ -57,7 +57,7 @@ def enviar_telegram(texto):
     try: requests.post(url_final, json=payload, timeout=5)
     except Exception as e: print(f"❌ Erro Telegram: {e}", flush=True)
 
-print("📡 [SISTEMA DETALHADO] Robô Over 0.5 HT monitorando com feedback de rede...", flush=True)
+print("📡 [SISTEMA ATUALIZADO] Robô Over 0.5 HT conectando à Nova API Titular B3Score Pro...", flush=True)
 
 # Loop contínuo de alta frequência
 for loop in range(100):
@@ -73,7 +73,7 @@ for loop in range(100):
         response = requests.get(url_dinamica, timeout=4)
         if response.status_code == 200:
             jogos = response.json().get('data', [])
-            print("  🟢 API Titular (Foot-Data) respondeu com sucesso.", flush=True)
+            print("  <b>🟢 SUCESSO: Conectado via API Titular B3Score Pro.</b>", flush=True)
     except:
         pass
 
