@@ -2,8 +2,11 @@ name: Executar Live Scanner HT
 
 on:
   schedule:
-    - cron: '0 * * * *' # Liga automaticamente a cada hora cheia, 24 horas por dia, 7 dias por semana
-  workflow_dispatch: # Permite o botão manual de dar o Play
+    # Roda a cada 5 minutos entre 17:00 UTC (14:00 BR) e 01:00 UTC (22:00 BR)
+    # Cobre perfeitamente a janela de 8 horas gastando exatamente 96 requisições por dia
+    - cron: '*/5 17-23 * * *'
+    - cron: '*/5 0 * * *'
+  workflow_dispatch:
 
 permissions:
   contents: write
