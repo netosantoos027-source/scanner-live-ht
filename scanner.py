@@ -7,16 +7,13 @@ import pytz
 import sys
 
 # ---------------------------------------------------------------------
-# PROJETO: ROBÔ OVER 0.5 HT (SUBSTITUIÇÃO DA API TITULAR PARA B3SCORE PRO)
+# PROJETO: ROBÔ OVER 0.5 HT (SUBSTITUIÇÃO DA API TITULAR PARA SCORE-X)
 # ---------------------------------------------------------------------
 TELEGRAM_TOKEN = "8977957095:AAFGcSuzjKxb2uX0lQzWwaozFdrreZ9myjc"
 TELEGRAM_CHAT_ID = "@robo_over_05_ht"
 
-# 🟢 NOVA API TITULAR: B3Score Global Feed Pro (Servidor Comercial de Alta Disponibilidade)
-t1 = "https://" + "raw."
-t2 = "githubusercontent.com"
-t3 = "/b3score/futebol-live/main/fixtures.json"
-API_TITULAR = t1 + t2 + t3
+# 🟢 NOVA API TITULAR: Score-X Open Database (Servidor Independente Fora do GitHub)
+API_TITULAR = "https://score-x.org"
 
 # 🟡 API RESERVA: Sua rede de segurança estável mantida em segundo plano
 p1 = "https://" + "raw."
@@ -57,7 +54,7 @@ def enviar_telegram(texto):
     try: requests.post(url_final, json=payload, timeout=5)
     except Exception as e: print(f"❌ Erro Telegram: {e}", flush=True)
 
-print("📡 [SISTEMA ATUALIZADO] Robô Over 0.5 HT conectando à Nova API Titular B3Score Pro...", flush=True)
+print("📡 [SISTEMA REESTRUTURADO] Robô Over 0.5 HT conectando à API Titular Score-X...", flush=True)
 
 # Loop contínuo de alta frequência
 for loop in range(100):
@@ -66,14 +63,15 @@ for loop in range(100):
     
     jogos = []
     # ---------------------------------------------------------------------
-    # 🧠 MOTOR DE CONEXÃO COM EXIBIÇÃO DE ALERTAS EM TEMPO REAL
+    # 🧠 MOTOR DE CONEXÃO INDEPENDENTE COM FEEDBACK VISUAL
     # ---------------------------------------------------------------------
     try:
-        url_dinamica = f"{API_TITULAR}?t={int(time.time())}"
+        # Tenta a Nova API Titular (Score-X) com parâmetros limpos e timeout de 4 segundos
+        url_dinamica = f"{API_TITULAR}?timestamp={int(time.time())}"
         response = requests.get(url_dinamica, timeout=4)
         if response.status_code == 200:
             jogos = response.json().get('data', [])
-            print("  <b>🟢 SUCESSO: Conectado via API Titular B3Score Pro.</b>", flush=True)
+            print("  🟢 SUCESSO: Conectado via API Titular Score-X.", flush=True)
     except:
         pass
 
